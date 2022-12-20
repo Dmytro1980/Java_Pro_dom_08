@@ -178,8 +178,12 @@ public class FileLogger {
     private void writeToFile(String message, FileLoggerConfiguration flc) {
         try {
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(flc.file, true));
-            bufferedWriter.append("\n[" + getCurrentDateTime() + "]" + "[" + flc.loggingLevel + "]" +
-                    " Message: " + "[" + message + "]");
+//            bufferedWriter.append("\n[" + getCurrentDateTime() + "]" + "[" + flc.loggingLevel + "]" +
+//                    " Message: " + "[" + message + "]");
+
+            bufferedWriter.append(String.format("[%s] [%s] Message: [%s]",
+                    getCurrentDateTime(), flc.loggingLevel, message));
+
             bufferedWriter.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
