@@ -1,7 +1,7 @@
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -176,15 +176,41 @@ public class FileLogger {
 
     // метод пишет в файл
     private void writeToFile(String message, FileLoggerConfiguration flc) {
+
+//        // Java IO - работает
+//        try {
+//            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(flc.file, true));
+////            // без String.format
+////            bufferedWriter.append("\n[" + getCurrentDateTime() + "]" + "[" + flc.loggingLevel + "]" +
+////                    " Message: " + "[" + message + "]");
+//
+//            // с использованием String.format
+//            bufferedWriter.append(String.format("[%s] [%s] Message: [%s]",
+//                    getCurrentDateTime(), flc.loggingLevel, message));
+//
+//            bufferedWriter.close(); // используется  и без String.format и с String.format
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+
+        // Java NIO
+        RandomAccessFile randomAccessFile = null;
+        FileChannel fileChannel = null;
+        ByteBuffer byteBuffer = null;
         try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(flc.file, true));
-//            bufferedWriter.append("\n[" + getCurrentDateTime() + "]" + "[" + flc.loggingLevel + "]" +
-//                    " Message: " + "[" + message + "]");
-
-            bufferedWriter.append(String.format("[%s] [%s] Message: [%s]",
-                    getCurrentDateTime(), flc.loggingLevel, message));
-
-            bufferedWriter.close();
+            randomAccessFile = new RandomAccessFile(flc.file, "rw");
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        fileChannel = randomAccessFile.getChannel();
+        String s = "\n[" + getCurrentDateTime() + "]" + "[" + flc.loggingLevel + "]" +
+                " Message: " + "[" + message + "]";
+        byteBuffer = ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8));
+        try {
+            long l = flc.file.length();
+            randomAccessFile.seek(l);
+            fileChannel.write(byteBuffer);
+            fileChannel.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
